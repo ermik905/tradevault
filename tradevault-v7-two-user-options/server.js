@@ -144,8 +144,8 @@ async function route(req, res) {
     try {
       const body = await parseBody(req);
       const name = String(body.name || "").trim();
-      const email = String(body.email || "").trim().toLowerCase();
-      const password = String(body.password || "");
+     const email = String(body.email || "").trim().toLowerCase();
+const password = String(body.password || "");
       if (!name || !email || password.length < 6) return send(res, 400, {error:"Name, email and a password of at least 6 characters are required."});
       const users = normalizeUsers();
       if (users.some(u => u.email === email)) return send(res, 409, {error:"Email already exists."});
