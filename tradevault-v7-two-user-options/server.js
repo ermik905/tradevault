@@ -174,7 +174,10 @@ const password = String(body.password || "");
         role: u.role,
         instagram: "https://www.instagram.com/ermik905/"
       });
-    } catch { return send(res, 400, {error:"Invalid request."}); }
+   } catch (err) {
+  console.error("LOGIN ERROR:", err);
+  return send(res, 400, {error: err.message || "Invalid request."});
+}
   }
 
   if (req.method === "POST" && pathname === "/api/login") {
