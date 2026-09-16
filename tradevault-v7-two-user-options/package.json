@@ -1,0 +1,12 @@
+{
+  "name": "tradevault-fullstack",
+  "version": "2.0.0",
+  "description": "Private trading journal with owner approval and shared trade viewing",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>TradeVault — Private Trading Journal</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:Inter,Arial,sans-serif}
+:root{--bg:#050810;--panel:rgba(13,19,32,.82);--border:rgba(255,255,255,.09);--text:#f5f7fb;--muted:#8994a7;--green:#22c55e;--red:#ef4444;--blue:#3b82f6;--cyan:#06b6d4;--yellow:#f59e0b}
+body{background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+.background{position:fixed;inset:0;z-index:-5;overflow:hidden;background:radial-gradient(circle at 20% 20%,rgba(59,130,246,.13),transparent 30%),radial-gradient(circle at 80% 70%,rgba(139,92,246,.12),transparent 30%),#050810}
+.grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:55px 55px;animation:gridMove 18s linear infinite}
+@keyframes gridMove{from{transform:translateY(0)}to{transform:translateY(55px)}}
+.glow{position:absolute;width:350px;height:350px;border-radius:50%;filter:blur(90px);opacity:.16;animation:float 10s ease-in-out infinite alternate}.glow.one{background:#2563eb;left:-100px;top:10%}.glow.two{background:#7c3aed;right:-100px;bottom:5%;animation-delay:2s}
+@keyframes float{from{transform:translate(0,0)}to{transform:translate(80px,-50px)}}
+.auth{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}.auth-box{width:100%;max-width:440px;padding:35px;background:rgba(9,14,25,.88);border:1px solid var(--border);border-radius:24px;backdrop-filter:blur(20px);box-shadow:0 30px 100px rgba(0,0,0,.5)}
+.logo{font-size:28px;font-weight:900;margin-bottom:8px}.logo span,.brand span{color:var(--cyan)}.auth-sub{color:var(--muted);margin-bottom:20px}.notice{padding:12px;border-radius:10px;background:#0b1422;border:1px solid var(--border);color:var(--muted);font-size:13px;margin:12px 0 18px}
+.auth-tabs{display:flex;background:#0b1220;border-radius:12px;padding:4px;margin-bottom:22px}.auth-tabs button{width:50%;border:0;background:transparent;color:var(--muted);padding:12px;border-radius:9px;cursor:pointer}.auth-tabs button.active{background:#182337;color:white}
+.input,.form-input,select,textarea{width:100%;padding:13px;margin:8px 0 14px;border-radius:10px;border:1px solid var(--border);background:#0a111e;color:white;outline:none}.input:focus,.form-input:focus,select:focus,textarea:focus{border-color:var(--blue)}
+.primary{width:100%;padding:14px;border:0;border-radius:11px;background:linear-gradient(135deg,#2563eb,#06b6d4);color:white;font-weight:800;cursor:pointer}.password-strength{font-size:12px;color:var(--muted);margin:-5px 0 12px}
+.app{display:none;min-height:100vh}.sidebar{position:fixed;left:0;top:0;bottom:0;width:250px;padding:25px 15px;background:rgba(7,12,21,.84);border-right:1px solid var(--border);backdrop-filter:blur(20px);z-index:20}.brand{font-size:22px;font-weight:900;padding:10px 12px 25px}.nav button{width:100%;text-align:left;border:0;background:transparent;color:var(--muted);padding:13px;margin:3px 0;border-radius:10px;cursor:pointer;font-size:14px}.nav button:hover,.nav button.active{background:#111d30;color:white}.logout{position:absolute;bottom:25px;left:15px;right:15px}
+.main{margin-left:250px;padding:28px}.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:25px}.user{color:var(--muted)}
+.page{display:none}.page.active{display:block;animation:fade .35s ease}@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+h1{font-size:28px;margin-bottom:6px}.subtitle{color:var(--muted);margin-bottom:25px}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin-bottom:18px}.card,.form-card{background:var(--panel);border:1px solid var(--border);border-radius:17px;padding:20px;backdrop-filter:blur(15px)}.card-title{color:var(--muted);font-size:13px}.card-value{font-size:25px;font-weight:900;margin-top:8px}.green{color:var(--green)!important}.red{color:var(--red)!important}.blue{color:#60a5fa}.yellow{color:var(--yellow)}
+.grid2{display:grid;grid-template-columns:2fr 1fr;gap:18px}.chart-card{min-height:350px}.chart-box{height:280px}
+.table-card{background:var(--panel);border:1px solid var(--border);border-radius:17px;overflow:auto}table{width:100%;border-collapse:collapse;min-width:700px}th,td{padding:14px;text-align:left;border-bottom:1px solid var(--border);font-size:13px}th{color:var(--muted)}.empty{padding:35px;text-align:center;color:var(--muted)}
+.form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:15px}label{display:block;color:var(--muted);font-size:12px;margin-bottom:5px}textarea{min-height:100px;resize:vertical}.btn{padding:12px 18px;border:0;border-radius:10px;cursor:pointer;font-weight:700}.btn-blue{background:#2563eb;color:white}.btn-green{background:#16a34a;color:white}.btn-red{background:#dc2626;color:white}.btn-yellow{background:#d97706;color:white}
+.calculator{max-width:850px}.result{margin-top:20px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.result-box{padding:18px;border-radius:12px;background:#0b1422;border:1px solid var(--border)}.result-box small{color:var(--muted)}.result-box strong{display:block;font-size:23px;margin-top:5px}
+.week-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:15px}.review{margin-top:18px}.mobile-menu{display:none}
+.user-row{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:15px;border-bottom:1px solid var(--border)}.user-row:last-child{border-bottom:0}.badge{display:inline-block;padding:5px 9px;border-radius:999px;font-size:11px;background:#162235;color:#cbd5e1}.badge.pending{color:#fbbf24}.badge.approved{color:#4ade80}.badge.rejected{color:#f87171}.share-box{padding:16px;background:#0b1422;border:1px solid var(--border);border-radius:12px;margin-bottom:18px}
+@media(max-width:1000px){.cards{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}.week-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:700px){.sidebar{transform:translateX(-100%);transition:.3s}.sidebar.open{transform:translateX(0)}.main{margin-left:0;padding:18px}.mobile-menu{display:block;border:0;background:#111d30;color:white;padding:10px;border-radius:8px;cursor:pointer}.cards{grid-template-columns:1fr 1fr}.form-grid{grid-template-columns:1fr}.week-grid{grid-template-columns:1fr}.auth-box{padding:25px}.result{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="background"><div class="grid"></div><div class="glow one"></div><div class="glow two"></div></div>
+
+<section class="auth" id="auth"><div class="auth-box">
+<div class="logo">Trade<span>Vault</span></div>
+<div class="auth-sub">Private Trading Journal • Owner Approval System</div><div id="serverStatus" class="notice" style="margin-top:10px;display:none"></div>
+<div class="notice">The first account created becomes the Owner/Admin. Every later account stays private and cannot see the journal until the Owner approves it.</div>
+<div class="auth-tabs"><button id="loginTab" class="active" onclick="showAuth('login')">Login</button><button id="signupTab" onclick="showAuth('signup')">Sign Up</button></div>
+<div id="loginForm"><label>Email</label><input id="loginEmail" class="input" type="email" placeholder="you@example.com"><label>Password</label><input id="loginPassword" class="input" type="password" placeholder="••••••••"><button class="primary" onclick="login()">Login</button></div>
+<div id="signupForm" style="display:none"><label>Full Name</label><input id="signupName" class="input" placeholder="Your name"><label>Email</label><input id="signupEmail" class="input" type="email" placeholder="you@example.com"><label>Password</label><input id="signupPassword" class="input" type="password" placeholder="At least 6 characters" oninput="passwordStrength()"><div class="password-strength" id="strength"></div><label>Confirm Password</label><input id="signupConfirm" class="input" type="password" placeholder="Confirm password"><button class="primary" onclick="signup()">Create Account</button></div>
+</div></section>
+
+
+<section id="modeChoice" class="auth" style="display:none"><div class="auth-box">
+<div class="logo">Choose Your <span>Journal</span></div>
+<div class="auth-sub">Choose one option</div>
+<div class="card" style="margin:12px 0;cursor:pointer" onclick="chooseMode('shared')">
+  <h2>👁️ See Ermiyas Trade</h2>
+  <p class="user" style="margin-top:8px">View Ermiyas' shared trading journal.</p>
+</div>
+<div class="card" style="margin:12px 0;cursor:pointer" onclick="chooseMode('personal')">
+  <h2>📒 Journal Your Trade</h2>
+  <p class="user" style="margin-top:8px">Create and manage your own private trading journal.</p>
+</div>
+<div class="share-box" style="margin-top:12px">
+  <strong>📱 Approval / Access</strong><br>
+  <span class="user">If your account is pending, send <b>"Approve"</b> to <b>@ermik905</b> on Instagram. Pending accounts are approved after 24 hours or earlier by Owner/Admin.</span>
+  <br><a href="https://www.instagram.com/ermik905/" target="_blank" class="btn btn-blue" style="display:inline-block;margin-top:12px;text-decoration:none">Open @ermik905</a>
+</div>
+<button class="btn btn-red" style="width:100%;margin-top:10px" onclick="logout()">Logout</button>
+</div></section>
+<section class="app" id="app"><aside class="sidebar" id="sidebar"><div class="brand">Trade<span>Vault</span></div><div class="nav" id="nav">
+<button class="active" onclick="openPage('dashboard',this)">📊 Dashboard</button>
+<button onclick="openPage('trades',this)">📒 Trade History</button>
+<button id="addTradeNav" onclick="openPage('addTrade',this)">➕ Add Trade</button>
+<button onclick="openPage('calculator',this)">🧮 Lot Calculator</button>
+<button onclick="openPage('weekly',this)">📅 Weekly Analysis</button>
+<button onclick="openPage('analytics',this)">📈 Analytics</button>
+<button onclick="openPage('psychology',this)">🧠 Psychology</button>
+<button id="sharedNav" style="display:none" onclick="openPage('shared',this)">👁️ Ermiyas Trade</button>
+<button id="approvalsNav" style="display:none" onclick="openPage('approvals',this)">👥 Approvals</button>
+<button onclick="openPage('settings',this)">⚙️ Settings</button>
+</div><button class="btn btn-red logout" onclick="logout()">Logout</button></aside>
+<main class="main"><header class="topbar"><button class="mobile-menu" onclick="toggleMenu()">☰</button><div class="user">Welcome, <strong id="username">Trader</strong> <span id="roleBadge" class="badge"></span></div></header>
+
+<section class="page active" id="dashboard"><h1 id="dashboardTitle">Dashboard</h1><div class="subtitle" id="dashboardSub">Your trading performance overview</div><div id="viewerNotice" class="share-box" style="display:none">👁️ <strong>Approved Viewer</strong><br><span class="user">You have been approved by the Owner. You can view the shared journal trades.</span></div><div class="cards">
+<div class="card"><div class="card-title">Account Balance</div><div class="card-value" id="balanceCard">$10,000</div></div><div class="card"><div class="card-title">Total Trades</div><div class="card-value" id="totalTrades">0</div></div><div class="card"><div class="card-title">Win Rate</div><div class="card-value green" id="winRate">0%</div></div><div class="card"><div class="card-title">Net P/L</div><div class="card-value" id="netPL">$0</div></div></div>
+<div class="grid2"><div class="card chart-card"><h3>Equity Curve</h3><div class="chart-box"><canvas id="equityChart"></canvas></div></div><div class="card"><h3>Quick Stats</h3><br><p>Average R:R</p><h2 id="avgRR">0</h2><br><p>Wins</p><h2 class="green" id="wins">0</h2><br><p>Losses</p><h2 class="red" id="losses">0</h2></div></div></section>
+
+<section class="page" id="trades"><h1>Trade History</h1><div class="subtitle" id="tradeSub">Your recorded trades</div><div class="table-card"><table><thead><tr><th>Date</th><th>Pair</th><th>Direction</th><th>Entry</th><th>SL</th><th>TP</th><th>Status</th><th>P/L</th><th>R:R</th><th>Strategy</th></tr></thead><tbody id="tradeTable"></tbody></table><div id="emptyTrades" class="empty">No trades recorded yet.</div></div></section>
+
+<section class="page" id="addTrade"><h1>Add Trade</h1><div class="subtitle">Owner and Admin accounts can add their journal trades</div><div class="form-card"><div class="form-grid">
+<div><label>Date</label><input id="tradeDate" class="form-input" type="date"></div><div><label>Pair</label><select id="pair"><option>EUR/USD</option><option>GBP/USD</option><option>USD/JPY</option><option>USD/CHF</option><option>AUD/USD</option><option>USD/CAD</option><option>NZD/USD</option><option>XAU/USD</option></select></div>
+<div><label>Direction</label><select id="direction"><option>BUY</option><option>SELL</option></select></div><div><label>Entry</label><input id="entry" class="form-input" type="number" step="any"></div>
+<div><label>Stop Loss</label><input id="sl" class="form-input" type="number" step="any"></div><div><label>Take Profit</label><input id="tp" class="form-input" type="number" step="any"></div>
+<div><label>Trade Result</label><select id="tradeStatus" class="form-input"><option value="WIN">WIN</option><option value="LOSS">LOSS</option></select></div><div><label>Profit / Loss ($)</label><input id="result" class="form-input" type="number" step="any" placeholder="e.g. 150"></div><div><label>R:R</label><input id="rr" class="form-input" type="number" step="any" placeholder="e.g. 3"></div>
+<div><label>Strategy</label><input id="strategy" class="form-input" placeholder="SMC / ICT / FVG / OB..."></div><div><label>Notes</label><textarea id="notes" placeholder="Setup, psychology, lesson..."></textarea></div>
+</div><button class="btn btn-green" onclick="addTrade()">Save Trade</button></div></section>
+
+<section class="page" id="calculator"><h1>Lot Size Calculator</h1><div class="subtitle">Choose broker first, then calculate position size</div><div class="form-card calculator"><label>Broker</label><select id="broker"><option>Standard Forex Broker</option><option>FBS</option><option>IC Markets</option><option>XM</option><option>Exness</option><option>Pepperstone</option></select><label>Pair</label><select id="calcPair"><option>EUR/USD</option><option>GBP/USD</option><option>USD/JPY</option><option>USD/CHF</option><option>XAU/USD</option></select><label>Account Balance</label><input id="calcBalance" class="form-input" type="number" value="10000"><label>Risk %</label><input id="riskPercent" class="form-input" type="number" value="1" step="0.1"><label>Entry</label><input id="calcEntry" class="form-input" type="number" step="any"><label>Stop Loss</label><input id="calcSL" class="form-input" type="number" step="any"><label>Take Profit</label><input id="calcTP" class="form-input" type="number" step="any"><button class="btn btn-blue" onclick="calculateLot()">Calculate</button><div class="result"><div class="result-box"><small>Broker</small><strong id="brokerOut">—</strong></div><div class="result-box"><small>Risk Amount</small><strong id="riskAmount">$0</strong></div><div class="result-box"><small>Lot Size</small><strong id="lotSize">0.00</strong></div><div class="result-box"><small>Risk Pips</small><strong id="riskPips">0</strong></div><div class="result-box"><small>Potential Profit</small><strong class="green" id="potentialProfit">$0</strong></div><div class="result-box"><small>R:R</small><strong id="calcRR">0</strong></div><div class="result-box"><small>Position Units</small><strong id="units">0</strong></div></div><p class="user" style="margin-top:14px;font-size:12px">Note: broker selection is stored and displayed here, but exact live contract specifications can differ by symbol/account type. Verify the symbol specification in your broker platform before placing a trade.</p></div></section>
+
+<section class="page" id="weekly"><h1>Weekly Analysis</h1><div class="subtitle">Automatic performance calculation from the journal</div><div class="week-grid"><div class="card"><div class="card-title">Weekly Trades</div><div class="card-value" id="weeklyTrades">0</div></div><div class="card"><div class="card-title">Win Rate</div><div class="card-value green" id="weeklyWinRate">0%</div></div><div class="card"><div class="card-title">Net P/L</div><div class="card-value" id="weeklyPL">$0</div></div><div class="card"><div class="card-title">Total R</div><div class="card-value" id="weeklyR">0R</div></div><div class="card"><div class="card-title">Best Trade</div><div class="card-value green" id="bestTrade">$0</div></div><div class="card"><div class="card-title">Worst Trade</div><div class="card-value red" id="worstTrade">$0</div></div></div></section>
+
+<section class="page" id="analytics"><h1>Analytics</h1><div class="subtitle">Detailed trading statistics</div><div class="grid2"><div class="card chart-card"><h3>Profit / Loss</h3><div class="chart-box"><canvas id="profitChart"></canvas></div></div><div class="card"><h3>Performance</h3><br><p>Profit Factor</p><h2 id="profitFactor">0</h2><br><p>Average Win</p><h2 class="green" id="avgWin">$0</h2><br><p>Average Loss</p><h2 class="red" id="avgLoss">$0</h2></div></div></section>
+
+<section class="page" id="psychology"><h1>Trading Psychology</h1><div class="subtitle">Private notes stay in this browser in this prototype</div><div class="form-card"><label>Before Trade</label><select><option>Calm</option><option>Confident</option><option>Fearful</option><option>FOMO</option><option>Angry</option><option>Uncertain</option></select><label>After Trade</label><select><option>Calm</option><option>Happy</option><option>Disappointed</option><option>Angry</option><option>Neutral</option></select><label>Psychology Notes</label><textarea placeholder="How did emotions affect your trade?"></textarea></div></section>
+
+
+<section class="page" id="shared"><h1>Ermiyas Trade</h1><div class="subtitle">Owner's shared trading journal</div>
+<div id="pendingBox" class="share-box">🔒 <strong>Approval Required</strong><br><span class="user">Send an approval request on Instagram, then wait for the Owner to approve your account.</span><br><a href="https://www.instagram.com/ermik905/" target="_blank" class="btn btn-blue" style="display:inline-block;margin-top:12px;text-decoration:none">Open @ermik905</a> <button class="btn btn-green" onclick="requestApproval()">I sent "Approve" on Instagram</button></div>
+<div class="table-card"><table><thead><tr><th>Date</th><th>Pair</th><th>Direction</th><th>Entry</th><th>SL</th><th>TP</th><th>Status</th><th>P/L</th><th>R:R</th><th>Strategy</th></tr></thead><tbody id="sharedTable"></tbody></table><div id="sharedEmpty" class="empty">Approval is required to view the shared journal.</div></div></section>
+<section class="page" id="approvals"><h1>Member Approvals</h1><div class="subtitle">Manage member approvals for the shared journal</div><div class="share-box"><strong>🔐 Privacy rule</strong><br><span class="user">Regular users are pending for 24 hours or until Owner/Admin approval. Owner and Admin accounts are approved automatically.</span></div><div class="form-card"><div id="pendingList">Loading...</div></div></section>
+
+<section class="page" id="settings"><h1>Settings</h1><div class="subtitle">Account and journal settings</div>
+<div class="form-card"><label>Starting Balance</label><input id="startingBalance" class="form-input" type="number" value="10000"><button class="btn btn-blue" onclick="saveSettings()">Save Settings</button></div>
+<div class="form-card" id="ownerTipBox" style="margin-top:18px;display:none"><h3>💡 Tip / Announcement for Approved Users</h3><p class="user" style="margin:8px 0 14px">Write anything here. Approved users will see it when they open their journal.</p><textarea id="ownerTip" placeholder="Example: Risk only 1% today. Follow your plan."></textarea><button class="btn btn-green" onclick="saveTip()">Publish Tip</button></div>
+<div class="form-card" id="viewerTipBox" style="margin-top:18px;display:none"><h3>💡 Ermiyas' Tip</h3><p id="viewerTip" style="margin-top:10px;color:#cbd5e1;white-space:pre-wrap">No tip yet.</p></div>
+</section>
+</main></section>
+
+<script>
+let trades=[], sharedTrades=[], currentUser=null, token=localStorage.getItem("tradeVaultToken")||"", selectedMode=localStorage.getItem("tradeVaultMode")||"";
+let settings=JSON.parse(localStorage.getItem("tradeVaultSettings")||'{"startingBalance":10000}');
+let equityChart,profitChart;
+
+const API_BASE = (location.protocol === "http:" || location.protocol === "https:")
+  ? location.origin
+  : "http://localhost:3000";
+const INSTAGRAM_URL = "https://www.instagram.com/ermik905/";
+
+async function api(path, options={}) {
+  const opts={...options, headers:{...(options.headers||{}), "Content-Type":"application/json"}};
+  if(token) opts.headers.Authorization="Bearer "+token;
+  let r;
+  try {
+    r=await fetch(API_BASE + path, opts);
+  } catch (err) {
+    throw new Error("Cannot connect to TradeVault server. Start Node.js with: node server.js, then open http://localhost:3000");
+  }
+  let d={}; try{d=await r.json()}catch{}
+  if(!r.ok) throw new Error(d.error||"Request failed");
+  return d;
+}
+function showAuth(type){loginForm.style.display=type==="login"?"block":"none";signupForm.style.display=type==="signup"?"block":"none";loginTab.classList.toggle("active",type==="login");signupTab.classList.toggle("active",type==="signup")}
+function passwordStrength(){let p=signupPassword.value;strength.textContent=p.length<6?"Weak password":p.length<9?"Medium password":"Strong password"}
+async function signup(){
+  const name=signupName.value.trim(),email=signupEmail.value.trim(),password=signupPassword.value,confirm=signupConfirm.value;
+  if(!name||!email||!password)return alert("Please complete all fields.");
+  if(password!==confirm)return alert("Passwords do not match.");
+  try{
+    const d=await api("/api/signup",{method:"POST",body:JSON.stringify({name,email,password})});
+    alert(d.message);
+    showAuth("login"); loginEmail.value=email; loginPassword.value="";
+  }catch(e){alert(e.message)}
+}
+async function login(){
+  const email=loginEmail.value.trim(),password=loginPassword.value;
+  if(!email||!password)return alert("Enter email and password.");
+  try{
+    const d=await api("/api/login",{method:"POST",body:JSON.stringify({email,password})});
+    token=d.token; currentUser=d.user; localStorage.setItem("tradeVaultToken",token);
+    if(currentUser.role==="owner" || currentUser.role==="admin"){
+      selectedMode="privileged";
+      localStorage.setItem("tradeVaultMode","privileged");
+      enterApp();
+    } else {
+      // Approved regular users choose between shared and personal journal.
+      selectedMode="";
+      localStorage.removeItem("tradeVaultMode");
+      auth.style.display="none";
+      app.style.display="none";
+      modeChoice.style.display="flex";
+    }
+  }catch(e){alert(e.message)}
+}
+async function logout(){
+  try{await api("/api/logout",{method:"POST"})}catch{}
+  token="";currentUser=null;selectedMode="";
+  localStorage.removeItem("tradeVaultToken");
+  localStorage.removeItem("tradeVaultMode");
+  app.style.display="none";modeChoice.style.display="none";auth.style.display="flex";
+}
+function enterApp(){
+  auth.style.display="none"; modeChoice.style.display="none"; app.style.display="block";
+  username.textContent=currentUser.name;
+  roleBadge.textContent=currentUser.role==="owner"?"OWNER":currentUser.role==="admin"?"ADMIN":"USER";
+  roleBadge.className="badge approved";
+
+  const privileged=currentUser.role==="owner" || currentUser.role==="admin";
+  const personal=privileged || (currentUser.role==="user" && selectedMode==="personal");
+
+  // Start with all navigation hidden, then expose only what this mode allows.
+  document.querySelectorAll("#nav > button").forEach(b=>b.style.display="none");
+  if(personal){
+    document.querySelectorAll("#nav > button:not(#sharedNav):not(#approvalsNav)").forEach(b=>b.style.display="block");
+  } else {
+    sharedNav.style.display="block";
+  }
+  approvalsNav.style.display=privileged?"block":"none";
+
+  viewerNotice.style.display=(!personal)?"block":"none";
+  dashboardTitle.textContent=personal?"My Trading Dashboard":"Ermiyas Trade";
+  dashboardSub.textContent=personal?"Your trading performance overview":"Shared journal access";
+  tradeSub.textContent=personal?"Your recorded trades":"Ermiyas' shared trades";
+  startingBalance.value=settings.startingBalance;
+
+  if(personal){
+    loadTrades("personal");
+    if(privileged) loadPending();
+    loadTip();
+  } else {
+    loadSharedTrades();
+    loadTip();
+  }
+  updateAll();
+}
+function chooseMode(mode){
+  if(mode!=="shared" && mode!=="personal") mode="shared";
+  selectedMode=mode;
+  localStorage.setItem("tradeVaultMode",mode);
+  enterApp();
+  if(mode==="shared"){
+    openPage("shared",sharedNav);
+    updateSharedAccessBox();
+  } else {
+    openPage("dashboard",document.querySelector('#nav button[onclick*="dashboard"]'));
+  }
+}
+function requestApproval(){
+  alert('Open @ermik905 on Instagram and send the message: "Approve". Regular users are approved after 24 hours or earlier by the Owner/Admin. Then log in again.');
+  window.open(INSTAGRAM_URL,"_blank");
+}
+async function loadTrades(mode="personal"){
+  try{const d=await api("/api/trades?mode="+encodeURIComponent(mode));trades=d.trades||[];updateAll()}catch(e){alert(e.message)}
+}
+async function loadSharedTrades(){
+  try{
+    const d=await api("/api/trades?mode=shared");
+    sharedTrades=d.trades||[];
+    renderShared();
+  }catch(e){ sharedTrades=[]; renderShared(); }
+}
+function renderShared(){
+  sharedTable.innerHTML="";
+  if(!sharedTrades.length){sharedEmpty.style.display="block";return}
+  sharedEmpty.style.display="none";
+  [...sharedTrades].reverse().forEach(t=>{let tr=document.createElement("tr");const status=t.status || (Number(t.result)>0?"WIN":"LOSS");
+  tr.innerHTML=`<td>${esc(t.date)}</td><td>${esc(t.pair)}</td><td>${esc(t.direction)}</td><td>${esc(t.entry)}</td><td>${esc(t.sl)}</td><td>${esc(t.tp)}</td><td class="${status==="WIN"?"green":"red"}"><strong>${esc(status)}</strong></td><td class="${t.result>=0?'green':'red'}">${t.result>=0?'+':''}$${Number(t.result).toFixed(2)}</td><td>1:${Number(t.rr).toFixed(2)}</td><td>${esc(t.strategy||"")}</td>`;sharedTable.appendChild(tr)})
+}
+function openPage(id,button){document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));document.getElementById(id).classList.add("active");document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active"));if(button)button.classList.add("active");sidebar.classList.remove("open");if(id==="approvals")loadPending();
+if(id==="shared"){loadSharedTrades();updateSharedAccessBox();}
+if(id==="settings")loadTip();
+updateAll()}
+function toggleMenu(){sidebar.classList.toggle("open")}
+async function addTrade(){
+  if(!currentUser || currentUser.status!=="approved")return alert("Approved login required.");
+  const status=tradeStatus.value;
+  const pnl=Math.abs(Number(result.value)||0);
+  if(!pnl)return alert("Enter the Profit / Loss amount.");
+  const signedResult=status==="WIN"?pnl:-pnl;
+  const t={date:tradeDate.value||new Date().toISOString().slice(0,10),pair:pair.value,direction:direction.value,entry:Number(entry.value),sl:Number(sl.value),tp:Number(tp.value),status,result:signedResult,rr:Math.abs(Number(rr.value)||0),strategy:strategy.value,notes:notes.value};
+  if(!t.entry||!t.sl||!t.tp)return alert("Please enter Entry, SL and TP.");
+  try{await api("/api/trades",{method:"POST",body:JSON.stringify(t)});alert("Trade saved to your journal.");document.querySelectorAll("#addTrade input,#addTrade textarea").forEach(x=>x.value="");await loadTrades("personal");openPage("trades")}catch(e){alert(e.message)}
+}
+function calculateLot(){
+  let balance=+calcBalance.value,risk=+riskPercent.value,entryV=+calcEntry.value,slV=+calcSL.value,tpV=+calcTP.value,p=calcPair.value;
+  if(!balance||!risk||!entryV||!slV||!tpV)return alert("Complete calculator fields.");
+  let riskMoney=balance*risk/100,pipSize=p.includes("JPY")?.01:p==="XAU/USD"?.1:.0001,pips=Math.abs(entryV-slV)/pipSize,pipValue=p==="XAU/USD"?10:p.includes("JPY")?9:10,lot=Math.max(0,Math.floor((riskMoney/(pips*pipValue))*100)/100),rewardPips=Math.abs(tpV-entryV)/pipSize,potential=rewardPips*pipValue*lot,rr=rewardPips/pips;
+  brokerOut.textContent=broker.value;riskAmount.textContent="$"+riskMoney.toFixed(2);lotSize.textContent=lot.toFixed(2);riskPips.textContent=pips.toFixed(1);potentialProfit.textContent="$"+potential.toFixed(2);calcRR.textContent="1:"+rr.toFixed(2);units.textContent=Math.round(lot*100000).toLocaleString()
+}
+function updateAll(){updateDashboard();updateTable();updateWeekly();updateAnalytics();updateCharts()}
+function updateDashboard(){
+  let total=trades.length,w=trades.filter(t=>(t.status||"") === "WIN" || t.result>0).length,l=trades.filter(t=>(t.status||"") === "LOSS" || t.result<0).length,net=trades.reduce((a,t)=>a+t.result,0),r=trades.filter(t=>t.rr>0);
+  let avg=r.length?r.reduce((a,t)=>a+t.rr,0)/r.length:0;
+  balanceCard.textContent="$"+(+settings.startingBalance+net).toFixed(2);totalTrades.textContent=total;winRate.textContent=total?(w/total*100).toFixed(1)+"%":"0%";netPL.textContent=(net>=0?"+":"")+"$"+net.toFixed(2);netPL.className="card-value "+(net>=0?"green":"red");avgRR.textContent=avg?"1:"+avg.toFixed(2):"0";wins.textContent=w;losses.textContent=l
+}
+function updateTable(){
+  tradeTable.innerHTML="";
+  if(!trades.length){emptyTrades.style.display="block";return}
+  emptyTrades.style.display="none";
+  [...trades].reverse().forEach(t=>{let tr=document.createElement("tr");const status=t.status || (Number(t.result)>0?"WIN":"LOSS");
+  tr.innerHTML=`<td>${esc(t.date)}</td><td>${esc(t.pair)}</td><td>${esc(t.direction)}</td><td>${esc(t.entry)}</td><td>${esc(t.sl)}</td><td>${esc(t.tp)}</td><td class="${status==="WIN"?"green":"red"}"><strong>${esc(status)}</strong></td><td class="${t.result>=0?'green':'red'}">${t.result>=0?'+':''}$${Number(t.result).toFixed(2)}</td><td>1:${Number(t.rr).toFixed(2)}</td><td>${esc(t.strategy||"")}</td>`;tradeTable.appendChild(tr)})
+}
+function updateWeekly(){
+  let now=new Date(),m=new Date(now),d=m.getDay(),diff=d===0?-6:1-d;m.setDate(m.getDate()+diff);m.setHours(0,0,0,0);
+  let w=trades.filter(t=>new Date(t.date)>=m),winsN=w.filter(t=>(t.status||"") === "WIN" || t.result>0).length,net=w.reduce((a,t)=>a+t.result,0),r=w.reduce((a,t)=>a+((t.status||"") === "WIN" ? Math.abs(t.rr) : -1),0),best=w.length?Math.max(...w.map(t=>t.result)):0,worst=w.length?Math.min(...w.map(t=>t.result)):0;
+  weeklyTrades.textContent=w.length;weeklyWinRate.textContent=w.length?(winsN/w.length*100).toFixed(1)+"%":"0%";weeklyPL.textContent=(net>=0?"+":"")+"$"+net.toFixed(2);weeklyR.textContent=r.toFixed(2)+"R";bestTrade.textContent="$"+best.toFixed(2);worstTrade.textContent="$"+worst.toFixed(2)
+}
+function updateAnalytics(){let w=trades.filter(t=>t.result>0),l=trades.filter(t=>t.result<0),gw=w.reduce((a,t)=>a+t.result,0),gl=Math.abs(l.reduce((a,t)=>a+t.result,0));profitFactor.textContent=(gl?gw/gl:0).toFixed(2);avgWin.textContent="$"+(w.length?gw/w.length:0).toFixed(2);avgLoss.textContent="$"+(l.length?gl/l.length:0).toFixed(2)}
+function updateCharts(){
+  let equity=[+settings.startingBalance];trades.forEach(t=>equity.push(equity.at(-1)+Number(t.result||0)));
+  if(equityChart)equityChart.destroy();
+  equityChart=new Chart(document.getElementById("equityChart"),{type:"line",data:{labels:equity.map((_,i)=>i?"Trade "+i:"Start"),datasets:[{label:"Equity",data:equity,borderColor:"#22c55e",backgroundColor:"rgba(34,197,94,.08)",fill:true,tension:.35}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}});
+  if(profitChart)profitChart.destroy();
+  profitChart=new Chart(document.getElementById("profitChart"),{type:"bar",data:{labels:trades.map((_,i)=>"T"+(i+1)),datasets:[{label:"P/L",data:trades.map(t=>Number(t.result||0)),backgroundColor:trades.map(t=>Number(t.result||0)>=0?"rgba(34,197,94,.65)":"rgba(239,68,68,.65)")} ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}})
+}
+async function loadPending(){
+  if(!currentUser||(currentUser.role!=="owner"&&currentUser.role!=="admin"))return;
+  try{
+    const d=await api("/api/users/pending");
+    if(!d.users.length){pendingList.innerHTML='<div class="empty">No pending approval requests.</div>';return}
+    pendingList.innerHTML=d.users.map(u=>`<div class="user-row"><div><strong>${esc(u.name)}</strong><br><span class="user">${esc(u.email)}</span><br><span class="badge pending">PENDING</span></div><div style="display:flex;gap:8px"><button class="btn btn-green" onclick="approveUser('${u.id}')">Approve</button><button class="btn btn-red" onclick="rejectUser('${u.id}')">Reject</button></div></div>`).join("")
+  }catch(e){pendingList.innerHTML='<div class="empty">'+esc(e.message)+'</div>'}
+}
+async function approveUser(id){try{await api("/api/users/"+id+"/approve",{method:"POST"});alert("User approved. They can now log in and view your trades.");loadPending()}catch(e){alert(e.message)}}
+async function rejectUser(id){if(!confirm("Reject this account?"))return;try{await api("/api/users/"+id+"/reject",{method:"POST"});loadPending()}catch(e){alert(e.message)}}
+async function loadTip(){
+  try{
+    const d=await api("/api/tip");
+    if(currentUser.role==="owner"){ownerTipBox.style.display="block";viewerTipBox.style.display="none";ownerTip.value=d.text||"";}
+    else {ownerTipBox.style.display="none";viewerTipBox.style.display="block";viewerTip.textContent=d.text||"No tip yet.";}
+  }catch{}
+}
+async function saveTip(){
+  try{await api("/api/tip",{method:"POST",body:JSON.stringify({text:ownerTip.value})});alert("Tip published for approved users.");}
+  catch(e){alert(e.message)}
+}
+function updateSharedAccessBox(){
+  if(currentUser && currentUser.role==="owner"){pendingBox.innerHTML='👑 <strong>Owner View</strong><br><span class="user">You are the Owner. This area represents the shared journal that approved users can view.</span>';return}
+  if(currentUser && currentUser.status==="approved"){pendingBox.innerHTML='✅ <strong>Approved</strong><br><span class="user">You can view Ermiyas\' shared journal.</span>';loadSharedTrades();}
+  else pendingBox.innerHTML='🔒 <strong>Pending Approval</strong><br><span class="user">Your account is pending. Send <b>"Approve"</b> to <b>@ermik905</b> on Instagram. You will be approved after 24 hours or earlier by the Owner/Admin.</span><br><a href="${INSTAGRAM_URL}" target="_blank" class="btn btn-blue" style="display:inline-block;margin-top:12px;text-decoration:none">Open @ermik905</a> <button class="btn btn-green" onclick="requestApproval()">I sent "Approve"</button>';
+}
+function saveSettings(){let v=+startingBalance.value;if(!v)return alert("Enter a valid balance.");settings.startingBalance=v;localStorage.setItem("tradeVaultSettings",JSON.stringify(settings));updateAll();alert("Settings saved.")}
+function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
+async function boot(){
+  tradeDate.value=new Date().toISOString().slice(0,10);
+  try{
+    await api("/api/health");
+    if(typeof serverStatus!=="undefined") serverStatus.style.display="none";
+    if(token){
+      const d=await api("/api/me");
+      currentUser=d.user;
+      enterApp();
+    }
+  }catch(e){
+    if(typeof serverStatus!=="undefined"){
+      serverStatus.style.display="block";
+      serverStatus.innerHTML="⚠️ <strong>Server not connected.</strong><br>Run <code>node server.js</code> and open <code>http://localhost:3000</code>.";
+    }
+  }
+}
+boot();
+</script>
+</body>
+</html>

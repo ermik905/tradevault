@@ -1,0 +1,42 @@
+[
+  {
+    "id": "0e8196ae-6d1a-4b70-ba83-55b263a98ab0",
+    "name": "Owner",
+    "email": "ermiyaskibatu905@gmail.com",
+    "salt": "39c11b163a75df1ee08027a70e67efd7",
+    "passwordHash": "cacf86c80632a443bcefc6674bc3a77589bfead3279932a7b550b2e44fa68b68639cf895cff92b843226213d8e6bd390af3aec6f7febc7424fd3d00e9d9c0895",
+    "role": "owner",
+    "status": "approved",
+    "createdAt": "2026-09-16T07:02:00.647Z"
+  },
+  {
+    "id": "9bf16ba8-3257-4b8b-91ed-ef349c1f4e68",
+    "name": "Admin1",
+    "email": "ermiyaskibatu12@gmail.com",
+    "salt": "21332cdbba0cf319936ba01c42c17b0d",
+    "passwordHash": "806c3330cace4ebd5d27dbbabd0300a8154d20aaf3ea5694dd66ba64ca1214d04523b603e2316eb4cab4278b5e7bbfd873b65182d95cd64622f806f28acd4bed",
+    "role": "admin",
+    "status": "approved",
+    "createdAt": "2026-09-16T07:02:00.695Z"
+  },
+  {
+    "id": "fba60e97-5e75-4e5f-ba81-ce502c5f875f",
+    "name": "Admin2",
+    "email": "ermik905@gmail.com",
+    "salt": "432d081087a7516c43769efff3c05570",
+    "passwordHash": "93287ceea2d97172afc9b59d1cc7ef71a6b8dda0b9ccacedfe9c6d5df169f920853e1d676edbedf8579b236034985d324c640b045f77f889e96372e89d03dbc9",
+    "role": "admin",
+    "status": "approved",
+    "createdAt": "2026-09-16T07:02:00.737Z"
+  },
+  {
+    "id": "0e5b7f9b-67ee-43be-8b8f-17ab89dd30e7",
+    "name": "User",
+    "email": "testuser@example.com",
+    "salt": "1e686ce2fca64613543a1b3798224915",
+    "passwordHash": "7ac1924e6e9408aedbd028a040d776e91f054754395701af76ee22c8ddc496a0feb1ef06b1e566c193084750e5d6af1e71e294b80ba663638d477bc30c27920e",
+    "role": "user",
+    "status": "pending",
+    "createdAt": "2026-09-16T07:02:00.778Z"
+  }
+]
